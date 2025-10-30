@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pomodoro Timer</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <h1>ポモドーロ・タイマー</h1>
+        <p class="app__tagline">集中と休憩のリズムを整えましょう</p>
+      </header>
+      <section class="app__body">
+        <div class="mode-switcher">
+          <button class="mode-switcher__button mode-switcher__button--active" data-mode="pomodoro">
+            ポモドーロ
+          </button>
+          <button class="mode-switcher__button" data-mode="shortBreak">短い休憩</button>
+          <button class="mode-switcher__button" data-mode="longBreak">長い休憩</button>
+        </div>
+        <div class="timer">
+          <div class="timer__display" aria-live="polite">
+            <span class="timer__minutes">25</span>
+            <span class="timer__separator">:</span>
+            <span class="timer__seconds">00</span>
+          </div>
+          <div class="category-selector" role="group" aria-label="カテゴリ選択">
+            <span class="category-selector__label">カテゴリ</span>
+            <div class="category-selector__buttons">
+              <button class="category-selector__button" type="button" data-category="work">
+                仕事
+              </button>
+              <button class="category-selector__button" type="button" data-category="study">
+                勉強
+              </button>
+              <button class="category-selector__button" type="button" data-category="home">
+                家事
+              </button>
+            </div>
+          </div>
+          <div class="timer__controls">
+            <button class="timer__control timer__control--primary" data-action="start">
+              スタート
+            </button>
+            <button class="timer__control" data-action="reset">リセット</button>
+            <button class="timer__control" data-action="skip">スキップ</button>
+          </div>
+          <div class="timer__status">
+            <p class="timer__phase-label">現在: ポモドーロ</p>
+            <p class="timer__cycle-label">完了ポモドーロ: 0 / 4</p>
+            <p class="timer__category-label">カテゴリ: 未選択</p>
+            <p class="timer__category-counts">カテゴリ別実施: 仕事 0 / 勉強 0 / 家事 0</p>
+          </div>
+        </div>
+        <section class="farm-panel" aria-live="polite">
+          <div class="farm-panel__header">
+            <h2>トマト農園</h2>
+            <div class="farm-panel__stats">
+              <span class="farm-panel__coins">所持コイン: 0 G</span>
+              <span class="farm-panel__harvest">収穫数: 0</span>
+              <span class="farm-panel__capacity">畑: 1 / 1</span>
+            </div>
+          </div>
+          <div class="farm-panel__controls">
+            <button type="button" class="farm-panel__plant-button">新しいトマトを植える</button>
+          </div>
+          <div class="farm-panel__plants">
+            <p class="farm-panel__empty">まだトマトを植えていません。スタートして育てましょう！</p>
+          </div>
+          <div class="farm-panel__upgrades">
+            <h3>アップグレード</h3>
+            <div class="farm-upgrades">
+              <button type="button" class="farm-upgrade" data-upgrade="capacity">
+                <span class="farm-upgrade__title">畑を拡張</span>
+                <span class="farm-upgrade__desc">同時に育てるトマト数を増やす</span>
+                <span class="farm-upgrade__meta">レベル 0 ・ コスト 150 G</span>
+              </button>
+              <button type="button" class="farm-upgrade" data-upgrade="growth">
+                <span class="farm-upgrade__title">栄養剤</span>
+                <span class="farm-upgrade__desc">成長速度を上げる</span>
+                <span class="farm-upgrade__meta">レベル 0 ・ コスト 120 G</span>
+              </button>
+              <button type="button" class="farm-upgrade" data-upgrade="value">
+                <span class="farm-upgrade__title">ブランド化</span>
+                <span class="farm-upgrade__desc">販売価格を上げる</span>
+                <span class="farm-upgrade__meta">レベル 0 ・ コスト 180 G</span>
+              </button>
+            </div>
+          </div>
+        </section>
+        <form class="settings" aria-label="タイマー設定">
+          <h2>設定</h2>
+          <div class="settings__group">
+            <label for="pomodoroMinutes">ポモドーロ</label>
+            <div class="settings__time">
+              <div class="settings__time-field">
+                <input id="pomodoroMinutes" type="number" min="0" max="180" value="25" />
+                <span>分</span>
+              </div>
+              <div class="settings__time-field">
+                <input id="pomodoroSeconds" type="number" min="0" max="59" value="0" />
+                <span>秒</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings__group">
+            <label for="shortBreakMinutes">短い休憩</label>
+            <div class="settings__time">
+              <div class="settings__time-field">
+                <input id="shortBreakMinutes" type="number" min="0" max="60" value="5" />
+                <span>分</span>
+              </div>
+              <div class="settings__time-field">
+                <input id="shortBreakSeconds" type="number" min="0" max="59" value="0" />
+                <span>秒</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings__group">
+            <label for="longBreakMinutes">長い休憩</label>
+            <div class="settings__time">
+              <div class="settings__time-field">
+                <input id="longBreakMinutes" type="number" min="0" max="120" value="15" />
+                <span>分</span>
+              </div>
+              <div class="settings__time-field">
+                <input id="longBreakSeconds" type="number" min="0" max="59" value="0" />
+                <span>秒</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings__group">
+            <label for="longBreakInterval">長い休憩の間隔 (ポモドーロ数)</label>
+            <input id="longBreakInterval" type="number" min="1" max="12" value="4" />
+          </div>
+          <div class="settings__actions">
+            <button type="button" class="settings__apply">設定を適用</button>
+          </div>
+        </form>
+      </section>
+      <footer class="app__footer">
+        <small>作業時間を可視化し、集中をサポートします。</small>
+      </footer>
+    </main>
+    <div class="celebration" hidden aria-live="polite">
+      <div class="celebration__content">
+        <h2 class="celebration__title">お疲れさま！</h2>
+        <p class="celebration__message">集中セッションを完了しました。</p>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

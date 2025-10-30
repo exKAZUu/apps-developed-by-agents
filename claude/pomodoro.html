@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ポモドーロタイマー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .timer-display {
+            font-size: 5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin: 30px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .control-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .start-btn {
+            background: #4CAF50;
+        }
+
+        .start-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .pause-btn {
+            background: #ff9800;
+        }
+
+        .pause-btn:hover {
+            background: #e68900;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .reset-btn {
+            background: #f44336;
+        }
+
+        .reset-btn:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .control-btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .progress-ring {
+            margin: 20px auto;
+        }
+
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(45deg);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .setting-description {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .save-btn:hover {
+            background: #5568d3;
+        }
+
+        .celebration-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .celebration-modal.active {
+            display: flex;
+        }
+
+        .celebration-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 60px 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            color: white;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: celebrationBounce 0.6s ease-out;
+        }
+
+        @keyframes celebrationBounce {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.95);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .celebration-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: celebrationRotate 1s ease-in-out infinite;
+        }
+
+        @keyframes celebrationRotate {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(-10deg);
+            }
+            75% {
+                transform: rotate(10deg);
+            }
+        }
+
+        .celebration-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .celebration-message {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            opacity: 0.95;
+        }
+
+        .celebration-submessage {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+
+        .category-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1500;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category-modal.active {
+            display: flex;
+        }
+
+        .category-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .category-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .category-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .category-btn {
+            padding: 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .category-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .category-icon {
+            font-size: 2rem;
+        }
+
+        .category-label {
+            flex: 1;
+            text-align: left;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-card-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-card-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-card-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .tomato-garden {
+            position: relative;
+            margin: 20px auto;
+        }
+
+        .tomato-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .tomato-icon {
+            font-size: 6rem;
+            margin-bottom: 10px;
+            animation: tomatoGrow 0.5s ease-out;
+        }
+
+        @keyframes tomatoGrow {
+            0% {
+                transform: scale(0.5);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .tomato-stage {
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .harvest-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border-radius: 12px;
+        }
+
+        .harvest-icon {
+            font-size: 2rem;
+        }
+
+        .harvest-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #d63031;
+        }
+
+        .harvest-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #d63031;
+        }
+
+        .money-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #55efc4 0%, #00b894 100%);
+            border-radius: 12px;
+        }
+
+        .money-icon {
+            font-size: 2rem;
+        }
+
+        .money-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .money-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .shop-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(253, 203, 110, 0.4);
+        }
+
+        .shop-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(253, 203, 110, 0.6);
+        }
+
+        .shop-modal .modal-content {
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .shop-items {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .shop-item {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .shop-item:hover {
+            background: #e8e8e8;
+            transform: translateY(-2px);
+        }
+
+        .shop-item-info {
+            flex: 1;
+        }
+
+        .shop-item-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .shop-item-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .shop-item-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .shop-item-level {
+            font-size: 0.85rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .shop-item-buy {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .shop-item-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #00b894;
+        }
+
+        .buy-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .buy-btn:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .buy-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .field-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .field {
+            position: relative;
+        }
+
+        .field.locked {
+            opacity: 0.3;
+        }
+
+        .sell-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #00b894;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sell-btn:hover:not(:disabled) {
+            background: #019874;
+            transform: translateY(-2px);
+        }
+
+        .sell-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 600px) {
+            .timer-display {
+                font-size: 3.5rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .control-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="settings-btn" id="settingsBtn">⚙</button>
+    <button class="shop-btn" id="shopBtn">🏪</button>
+
+    <div class="category-modal" id="categoryModal">
+        <div class="category-content">
+            <h2 class="category-title">カテゴリを選択してください</h2>
+            <div class="category-buttons">
+                <button class="category-btn" data-category="work">
+                    <span class="category-icon">💼</span>
+                    <span class="category-label">仕事</span>
+                </button>
+                <button class="category-btn" data-category="study">
+                    <span class="category-icon">📚</span>
+                    <span class="category-label">勉強</span>
+                </button>
+                <button class="category-btn" data-category="housework">
+                    <span class="category-icon">🏠</span>
+                    <span class="category-label">家事</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="celebration-modal" id="celebrationModal">
+        <div class="celebration-content">
+            <div class="celebration-icon" id="celebrationIcon">🎉</div>
+            <div class="celebration-title" id="celebrationTitle">お疲れ様でした！</div>
+            <div class="celebration-message" id="celebrationMessage">素晴らしい集中力でした！</div>
+            <div class="celebration-submessage" id="celebrationSubmessage">少し休憩しましょう</div>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">⚙ 設定</h2>
+                <button class="close-btn" id="closeModalBtn">×</button>
+            </div>
+
+            <div class="setting-item">
+                <label class="setting-label" for="workTime">作業時間</label>
+                <input type="number" id="workTime" class="setting-input" min="1" value="1500">
+                <p class="setting-description">秒単位で設定（デフォルト: 1500秒 = 25分）</p>
+            </div>
+
+            <div class="setting-item">
+                <label class="setting-label" for="shortBreakTime">短休憩時間</label>
+                <input type="number" id="shortBreakTime" class="setting-input" min="1" value="300">
+                <p class="setting-description">秒単位で設定（デフォルト: 300秒 = 5分）</p>
+            </div>
+
+            <div class="setting-item">
+                <label class="setting-label" for="longBreakTime">長休憩時間</label>
+                <input type="number" id="longBreakTime" class="setting-input" min="1" value="900">
+                <p class="setting-description">秒単位で設定（デフォルト: 900秒 = 15分）</p>
+            </div>
+
+            <button class="save-btn" id="saveSettingsBtn">設定を保存</button>
+        </div>
+    </div>
+
+    <div class="modal shop-modal" id="shopModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🏪 ショップ</h2>
+                <button class="close-btn" id="closeShopBtn">×</button>
+            </div>
+
+            <div class="money-section" style="margin-bottom: 20px;">
+                <span class="money-icon">💰</span>
+                <span class="money-text">所持金:</span>
+                <span class="money-count" id="shopMoneyDisplay">0</span>
+            </div>
+
+            <div class="shop-items" id="shopItems">
+                <!-- アイテムはJavaScriptで動的に生成 -->
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>🍅 ポモドーロタイマー</h1>
+
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="work">作業</button>
+            <button class="mode-btn" data-mode="short-break">短休憩</button>
+            <button class="mode-btn" data-mode="long-break">長休憩</button>
+        </div>
+
+        <div class="money-section">
+            <span class="money-icon">💰</span>
+            <span class="money-text">所持金:</span>
+            <span class="money-count" id="moneyDisplay">0</span>
+        </div>
+
+        <div class="harvest-section">
+            <span class="harvest-icon">🧺</span>
+            <span class="harvest-text">在庫トマト:</span>
+            <span class="harvest-count" id="harvestedCount">0</span>
+            <button class="sell-btn" id="sellBtn">販売する</button>
+        </div>
+
+        <div class="field-container" id="fieldContainer">
+            <!-- 畑はJavaScriptで動的に生成 -->
+        </div>
+
+        <div class="tomato-garden" style="display: none;">
+            <svg class="progress-ring" width="300" height="300">
+                <circle
+                    class="progress-ring-circle"
+                    stroke="#667eea"
+                    stroke-width="8"
+                    fill="transparent"
+                    r="140"
+                    cx="150"
+                    cy="150"
+                />
+            </svg>
+            <div class="tomato-display">
+                <div class="tomato-icon" id="tomatoIcon">🌱</div>
+                <div class="tomato-stage" id="tomatoStage">種を植えました</div>
+            </div>
+        </div>
+
+        <div class="timer-display" id="timer">25:00</div>
+
+        <div class="controls">
+            <button class="control-btn start-btn" id="startBtn">スタート</button>
+            <button class="control-btn pause-btn" id="pauseBtn" disabled>一時停止</button>
+            <button class="control-btn reset-btn" id="resetBtn">リセット</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-card-icon">💼</div>
+                <div class="stat-card-label">仕事</div>
+                <div class="stat-card-value" id="workCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon">📚</div>
+                <div class="stat-card-label">勉強</div>
+                <div class="stat-card-value" id="studyCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon">🏠</div>
+                <div class="stat-card-label">家事</div>
+                <div class="stat-card-value" id="houseworkCount">0</div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">完了</div>
+                <div class="stat-value" id="completedPomodoros">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">サイクル</div>
+                <div class="stat-value" id="currentCycle">1 / 4</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // タイマーの設定（秒単位）
+        let WORK_TIME = 25 * 60;
+        let SHORT_BREAK = 5 * 60;
+        let LONG_BREAK = 15 * 60;
+        const POMODOROS_PER_CYCLE = 4;
+
+        // 状態管理
+        let currentMode = 'work';
+        let timeLeft = WORK_TIME;
+        let isRunning = false;
+        let timerId = null;
+        let completedPomodoros = 0;
+        let currentCycle = 1;
+        let currentCategory = null;
+        let categoryStats = {
+            work: 0,
+            study: 0,
+            housework: 0
+        };
+        // ゲーム状態管理
+        let money = 0; // 所持金
+        let harvestedTomatoes = 0; // 在庫トマトの数
+        let fields = [
+            { growth: 0, unlocked: true }  // 最初は1つの畑のみ
+        ];
+
+        // アップグレード状態
+        let upgrades = {
+            fields: 1,          // 畑の数（1-5）
+            growthSpeed: 1,     // 成長速度（1段階につき1成長）
+            tomatoPrice: 10     // トマト1個あたりの販売価格
+        };
+
+        // トマトの成長段階の定義
+        const tomatoStages = [
+            { icon: '🌱', text: '種を植えました' },
+            { icon: '🌿', text: '芽が出ました' },
+            { icon: '🪴', text: '葉が育っています' },
+            { icon: '🌼', text: '花が咲きました' },
+            { icon: '🍅', text: '完熟トマト！' }
+        ];
+
+        // アップグレードアイテムの定義
+        const shopItems = [
+            {
+                id: 'field',
+                icon: '🌾',
+                name: '畑を増やす',
+                description: '同時に育てられるトマトを増やす',
+                maxLevel: 5,
+                basePrice: 50,
+                priceMultiplier: 2,
+                getCurrentLevel: () => upgrades.fields,
+                canBuy: () => upgrades.fields < 5,
+                effect: () => {
+                    upgrades.fields++;
+                    fields.push({ growth: 0, unlocked: true });
+                    renderFields();
+                }
+            },
+            {
+                id: 'growth',
+                icon: '⚡',
+                name: '成長速度アップ',
+                description: '1回の作業でトマトが複数段階成長',
+                maxLevel: 4,
+                basePrice: 100,
+                priceMultiplier: 2.5,
+                getCurrentLevel: () => upgrades.growthSpeed,
+                canBuy: () => upgrades.growthSpeed < 4,
+                effect: () => {
+                    upgrades.growthSpeed++;
+                }
+            },
+            {
+                id: 'price',
+                icon: '💎',
+                name: '販売価格アップ',
+                description: 'トマト1個あたりの販売価格を上げる',
+                maxLevel: 10,
+                basePrice: 80,
+                priceMultiplier: 1.8,
+                getCurrentLevel: () => Math.floor((upgrades.tomatoPrice - 10) / 10) + 1,
+                canBuy: () => upgrades.tomatoPrice < 110,
+                effect: () => {
+                    upgrades.tomatoPrice += 10;
+                }
+            }
+        ];
+
+        // DOM要素
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const completedDisplay = document.getElementById('completedPomodoros');
+        const cycleDisplay = document.getElementById('currentCycle');
+        const progressCircle = document.querySelector('.progress-ring-circle');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const workTimeInput = document.getElementById('workTime');
+        const shortBreakTimeInput = document.getElementById('shortBreakTime');
+        const longBreakTimeInput = document.getElementById('longBreakTime');
+        const celebrationModal = document.getElementById('celebrationModal');
+        const celebrationIcon = document.getElementById('celebrationIcon');
+        const celebrationTitle = document.getElementById('celebrationTitle');
+        const celebrationMessage = document.getElementById('celebrationMessage');
+        const celebrationSubmessage = document.getElementById('celebrationSubmessage');
+        const categoryModal = document.getElementById('categoryModal');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        const workCountDisplay = document.getElementById('workCount');
+        const studyCountDisplay = document.getElementById('studyCount');
+        const houseworkCountDisplay = document.getElementById('houseworkCount');
+        const tomatoIconDisplay = document.getElementById('tomatoIcon');
+        const tomatoStageDisplay = document.getElementById('tomatoStage');
+        const harvestedCountDisplay = document.getElementById('harvestedCount');
+        const moneyDisplay = document.getElementById('moneyDisplay');
+        const shopBtn = document.getElementById('shopBtn');
+        const shopModal = document.getElementById('shopModal');
+        const closeShopBtn = document.getElementById('closeShopBtn');
+        const shopMoneyDisplay = document.getElementById('shopMoneyDisplay');
+        const shopItemsContainer = document.getElementById('shopItems');
+        const sellBtn = document.getElementById('sellBtn');
+        const fieldContainer = document.getElementById('fieldContainer');
+
+        // プログレスリングの設定
+        const radius = progressCircle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressCircle.style.strokeDashoffset = circumference;
+
+        // 時間を表示形式に変換
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // プログレスリングを更新
+        function updateProgress() {
+            const totalTime = getTotalTimeForMode(currentMode);
+            const progress = timeLeft / totalTime;
+            const offset = circumference - (progress * circumference);
+            progressCircle.style.strokeDashoffset = offset;
+        }
+
+        // モード別の時間を取得
+        function getTotalTimeForMode(mode) {
+            switch (mode) {
+                case 'work': return WORK_TIME;
+                case 'short-break': return SHORT_BREAK;
+                case 'long-break': return LONG_BREAK;
+                default: return WORK_TIME;
+            }
+        }
+
+        // 表示を更新
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(timeLeft);
+            updateProgress();
+        }
+
+        // タイマーを1秒進める
+        function tick() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateDisplay();
+            } else {
+                // タイマー終了
+                stopTimer();
+                playNotification();
+                handleTimerComplete();
+            }
+        }
+
+        // 畑を描画
+        function renderFields() {
+            fieldContainer.innerHTML = '';
+            fields.forEach((field, index) => {
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = `tomato-garden field ${!field.unlocked ? 'locked' : ''}`;
+
+                const svg = `
+                    <svg class="progress-ring" width="200" height="200">
+                        <circle
+                            class="progress-ring-circle"
+                            stroke="#667eea"
+                            stroke-width="6"
+                            fill="transparent"
+                            r="90"
+                            cx="100"
+                            cy="100"
+                        />
+                    </svg>
+                `;
+
+                const stage = tomatoStages[field.growth];
+                fieldDiv.innerHTML = `
+                    ${svg}
+                    <div class="tomato-display">
+                        <div class="tomato-icon" style="font-size: 4rem;">${stage.icon}</div>
+                        <div class="tomato-stage" style="font-size: 0.75rem;">${stage.text}</div>
+                    </div>
+                `;
+
+                fieldContainer.appendChild(fieldDiv);
+            });
+        }
+
+        // トマトを成長させる（全ての畑）
+        function growTomatoes() {
+            let harvestedCount = 0;
+
+            fields.forEach(field => {
+                if (!field.unlocked) return;
+
+                // 成長速度に応じて成長
+                for (let i = 0; i < upgrades.growthSpeed; i++) {
+                    if (field.growth < 4) {
+                        field.growth++;
+                    } else {
+                        // 収穫
+                        harvestedCount++;
+                        field.growth = 0;
+                    }
+                }
+            });
+
+            if (harvestedCount > 0) {
+                harvestedTomatoes += harvestedCount;
+                harvestedCountDisplay.textContent = harvestedTomatoes;
+                setTimeout(() => {
+                    alert(`🎊 トマトを${harvestedCount}個収穫しました！`);
+                }, 3000);
+            }
+
+            renderFields();
+            saveGameData();
+        }
+
+        // トマトを販売
+        function sellTomatoes() {
+            if (harvestedTomatoes === 0) {
+                alert('販売するトマトがありません！');
+                return;
+            }
+
+            const earnings = harvestedTomatoes * upgrades.tomatoPrice;
+            money += earnings;
+            harvestedTomatoes = 0;
+
+            updateMoneyDisplay();
+            harvestedCountDisplay.textContent = 0;
+            saveGameData();
+
+            alert(`🎊 トマトを販売して${earnings}円獲得しました！`);
+        }
+
+        // お金表示を更新
+        function updateMoneyDisplay() {
+            moneyDisplay.textContent = money;
+            shopMoneyDisplay.textContent = money;
+        }
+
+        // ショップを開く
+        function openShop() {
+            updateMoneyDisplay();
+            renderShop();
+            shopModal.classList.add('active');
+        }
+
+        // ショップを閉じる
+        function closeShop() {
+            shopModal.classList.remove('active');
+        }
+
+        // ショップのアイテムを描画
+        function renderShop() {
+            shopItemsContainer.innerHTML = '';
+
+            shopItems.forEach(item => {
+                const currentLevel = item.getCurrentLevel();
+                const price = Math.floor(item.basePrice * Math.pow(item.priceMultiplier, currentLevel - 1));
+                const canBuy = item.canBuy() && money >= price;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'shop-item';
+                itemDiv.innerHTML = `
+                    <div class="shop-item-info">
+                        <div class="shop-item-icon">${item.icon}</div>
+                        <div class="shop-item-name">${item.name}</div>
+                        <div class="shop-item-description">${item.description}</div>
+                        <div class="shop-item-level">レベル: ${currentLevel} / ${item.maxLevel}</div>
+                    </div>
+                    <div class="shop-item-buy">
+                        <div class="shop-item-price">💰 ${price}</div>
+                        <button class="buy-btn" ${!canBuy ? 'disabled' : ''} onclick="buyItem('${item.id}')">
+                            ${item.canBuy() ? '購入' : '最大'}
+                        </button>
+                    </div>
+                `;
+
+                shopItemsContainer.appendChild(itemDiv);
+            });
+        }
+
+        // アイテムを購入
+        function buyItem(itemId) {
+            const item = shopItems.find(i => i.id === itemId);
+            if (!item || !item.canBuy()) return;
+
+            const currentLevel = item.getCurrentLevel();
+            const price = Math.floor(item.basePrice * Math.pow(item.priceMultiplier, currentLevel - 1));
+
+            if (money < price) {
+                alert('お金が足りません！');
+                return;
+            }
+
+            money -= price;
+            item.effect();
+            updateMoneyDisplay();
+            renderShop();
+            saveGameData();
+
+            alert(`${item.name}を購入しました！`);
+        }
+
+        // グローバルスコープに追加（HTMLからアクセスするため）
+        window.buyItem = buyItem;
+
+        // ゲームデータを保存
+        function saveGameData() {
+            localStorage.setItem('pomodoroGameData', JSON.stringify({
+                money,
+                harvestedTomatoes,
+                fields,
+                upgrades
+            }));
+        }
+
+        // ゲームデータを読み込む
+        function loadGameData() {
+            const savedData = localStorage.getItem('pomodoroGameData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                money = data.money || 0;
+                harvestedTomatoes = data.harvestedTomatoes || 0;
+                fields = data.fields || [{ growth: 0, unlocked: true }];
+                upgrades = data.upgrades || {
+                    fields: 1,
+                    growthSpeed: 1,
+                    tomatoPrice: 10
+                };
+
+                updateMoneyDisplay();
+                harvestedCountDisplay.textContent = harvestedTomatoes;
+                renderFields();
+            } else {
+                renderFields();
+            }
+        }
+
+        // 褒めるメッセージのバリエーション
+        const praiseMessages = [
+            { icon: '🎉', title: 'お疲れ様でした！', message: '素晴らしい集中力でした！' },
+            { icon: '✨', title: '完璧です！', message: '集中して取り組めましたね！' },
+            { icon: '🌟', title: 'よくやりました！', message: '着実に前進しています！' },
+            { icon: '🏆', title: '素晴らしい！', message: '今日も一歩前進しました！' },
+            { icon: '💪', title: 'グレート！', message: '素晴らしい成果です！' },
+            { icon: '🎯', title: '達成！', message: '集中力を維持できましたね！' }
+        ];
+
+        // タイマー完了時の処理
+        function handleTimerComplete() {
+            if (currentMode === 'work') {
+                completedPomodoros++;
+                completedDisplay.textContent = completedPomodoros;
+
+                // カテゴリ統計を更新
+                if (currentCategory) {
+                    categoryStats[currentCategory]++;
+                    updateCategoryDisplay();
+                    saveCategoryStats();
+                }
+
+                // トマトを成長させる
+                growTomatoes();
+
+                // カテゴリをリセット（次回のために）
+                currentCategory = null;
+
+                // ランダムに褒めるメッセージを選択
+                const praise = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+                celebrationIcon.textContent = praise.icon;
+                celebrationTitle.textContent = praise.title;
+                celebrationMessage.textContent = praise.message;
+
+                // 4回目のポモドーロ後は長休憩
+                if (completedPomodoros % POMODOROS_PER_CYCLE === 0) {
+                    currentCycle = Math.floor(completedPomodoros / POMODOROS_PER_CYCLE) + 1;
+                    celebrationSubmessage.textContent = 'しっかり長めの休憩を取りましょう！';
+                    showCelebration('long-break');
+                } else {
+                    celebrationSubmessage.textContent = '少し休憩しましょう！';
+                    showCelebration('short-break');
+                }
+            } else {
+                // 休憩終了後は褒める画面を表示せずに作業モードに切り替え
+                celebrationIcon.textContent = '💼';
+                celebrationTitle.textContent = '休憩終了！';
+                celebrationMessage.textContent = '次のポモドーロを始めましょう';
+                celebrationSubmessage.textContent = 'スタートボタンを押して開始してください';
+                showCelebration('work');
+            }
+
+            cycleDisplay.textContent = `${((completedPomodoros % POMODOROS_PER_CYCLE) + 1)} / ${POMODOROS_PER_CYCLE}`;
+        }
+
+        // 褒める画面を表示
+        function showCelebration(nextMode) {
+            celebrationModal.classList.add('active');
+
+            // 3秒後に自動的に閉じる
+            setTimeout(() => {
+                celebrationModal.classList.remove('active');
+                setMode(nextMode);
+            }, 3000);
+        }
+
+        // 通知音を鳴らす
+        function playNotification() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        // タイマーを開始
+        function startTimer() {
+            // 作業モードでカテゴリが選択されていない場合、カテゴリ選択モーダルを表示
+            if (currentMode === 'work' && !currentCategory) {
+                categoryModal.classList.add('active');
+                return;
+            }
+
+            isRunning = true;
+            timerId = setInterval(tick, 1000);
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+        }
+
+        // カテゴリを選択してタイマーを開始
+        function selectCategoryAndStart(category) {
+            currentCategory = category;
+            categoryModal.classList.remove('active');
+            startTimer();
+        }
+
+        // タイマーを停止
+        function stopTimer() {
+            isRunning = false;
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+            }
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+        }
+
+        // タイマーをリセット
+        function resetTimer() {
+            stopTimer();
+            timeLeft = getTotalTimeForMode(currentMode);
+            updateDisplay();
+        }
+
+        // モードを変更
+        function setMode(mode) {
+            currentMode = mode;
+            stopTimer();
+            timeLeft = getTotalTimeForMode(mode);
+            updateDisplay();
+
+            // ボタンのアクティブ状態を更新
+            modeBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+        }
+
+        // カテゴリ表示を更新
+        function updateCategoryDisplay() {
+            workCountDisplay.textContent = categoryStats.work;
+            studyCountDisplay.textContent = categoryStats.study;
+            houseworkCountDisplay.textContent = categoryStats.housework;
+        }
+
+        // カテゴリ統計を保存
+        function saveCategoryStats() {
+            localStorage.setItem('pomodoroCategoryStats', JSON.stringify(categoryStats));
+        }
+
+        // カテゴリ統計を読み込む
+        function loadCategoryStats() {
+            const savedStats = localStorage.getItem('pomodoroCategoryStats');
+            if (savedStats) {
+                categoryStats = JSON.parse(savedStats);
+                updateCategoryDisplay();
+            }
+        }
+
+        // 設定を読み込む
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('pomodoroSettings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                WORK_TIME = settings.workTime || WORK_TIME;
+                SHORT_BREAK = settings.shortBreakTime || SHORT_BREAK;
+                LONG_BREAK = settings.longBreakTime || LONG_BREAK;
+            }
+
+            // 入力フィールドに反映
+            workTimeInput.value = WORK_TIME;
+            shortBreakTimeInput.value = SHORT_BREAK;
+            longBreakTimeInput.value = LONG_BREAK;
+
+            // タイマーをリセット
+            timeLeft = getTotalTimeForMode(currentMode);
+            updateDisplay();
+        }
+
+        // 設定を保存する
+        function saveSettings() {
+            const settings = {
+                workTime: parseInt(workTimeInput.value),
+                shortBreakTime: parseInt(shortBreakTimeInput.value),
+                longBreakTime: parseInt(longBreakTimeInput.value)
+            };
+
+            localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+
+            WORK_TIME = settings.workTime;
+            SHORT_BREAK = settings.shortBreakTime;
+            LONG_BREAK = settings.longBreakTime;
+
+            // タイマーをリセット
+            resetTimer();
+
+            // モーダルを閉じる
+            settingsModal.classList.remove('active');
+        }
+
+        // モーダルを開く
+        function openModal() {
+            settingsModal.classList.add('active');
+        }
+
+        // モーダルを閉じる
+        function closeModal() {
+            settingsModal.classList.remove('active');
+        }
+
+        // イベントリスナー
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', stopTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setMode(btn.dataset.mode);
+            });
+        });
+
+        settingsBtn.addEventListener('click', openModal);
+        closeModalBtn.addEventListener('click', closeModal);
+        saveSettingsBtn.addEventListener('click', saveSettings);
+
+        // ショップボタンのイベントリスナー
+        shopBtn.addEventListener('click', openShop);
+        closeShopBtn.addEventListener('click', closeShop);
+
+        // 販売ボタンのイベントリスナー
+        sellBtn.addEventListener('click', sellTomatoes);
+
+        // カテゴリボタンのイベントリスナー
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const category = btn.dataset.category;
+                selectCategoryAndStart(category);
+            });
+        });
+
+        // モーダルの背景をクリックしたら閉じる
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                closeModal();
+            }
+        });
+
+        shopModal.addEventListener('click', (e) => {
+            if (e.target === shopModal) {
+                closeShop();
+            }
+        });
+
+        // 初期設定を読み込む
+        loadSettings();
+
+        // カテゴリ統計を読み込む
+        loadCategoryStats();
+
+        // ゲームデータを読み込む
+        loadGameData();
+
+        // 初期表示
+        updateDisplay();
+    </script>
+</body>
+</html>
